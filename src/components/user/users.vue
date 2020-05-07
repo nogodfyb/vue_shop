@@ -35,7 +35,7 @@
       <el-table-column label="操作" width="200px">
         <template slot-scope="scope">
           <el-button type="primary" icon="el-icon-edit" size="mini" @click="showEditDialog(scope.row.id)"></el-button>
-          <el-button type="danger" icon="el-icon-delete" size="mini"></el-button>
+          <el-button type="danger" icon="el-icon-delete" size="mini" @click="deleteUser(scope.row.id)"></el-button>
           <el-tooltip  effect="dark" content="分配角色" placement="top-start" :enterable="false">
             <el-button type="warning" icon="el-icon-setting" size="mini"></el-button>
           </el-tooltip>
@@ -238,10 +238,8 @@ export default {
       })
     },
     async showEditDialog (id) {
-      console.log('id:' + id)
       this.editDialogVisible = true
       const { data: res } = await this.$http.get(`user/users/${id}`)
-      console.log(res)
       if (res.status !== 200) {
         this.$message.error('获取用户信息失败')
         return false
@@ -254,7 +252,6 @@ export default {
     editUser () {
       this.$refs.editFormRef.validate(async (valid) => {
         if (!valid) {
-          console.log(false)
           return false
         }
         // 可以发起修改用户的网络请求
@@ -263,11 +260,37 @@ export default {
           this.$message.error('修改用户失败！')
         }
         this.$message.success('修改用户成功！')
-        // 隐藏添加用户的对话框
+        // 隐藏修改用户的对话框
         this.editDialogVisible = false
         // 重新获取用户列表数据
         this.getUserList()
       })
+    },
+    deleteUser (id) {
+      this.$confirm('此操作将永久删除该文件, 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        this.deleteUserById(id)
+      }).catch(() => {
+        this.$message({
+          type: 'info',
+          message: '已取消删除'
+        })
+      })
+    },
+    async deleteUserById (userId) {
+      // 可以发起修改用户的网络请求
+      const { data: res } = await this.$http.delete(`user/users/${userId}`)
+      if (res.status !== 200) {
+        return this.$message.error('删除失败')
+      }
+      this.$message({
+        type: 'success',
+        message: '删除成功!'
+      })
+      this.getUserList()
     }
   }
 }

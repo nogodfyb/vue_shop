@@ -11,8 +11,8 @@
 <!-- 搜索与添加区域  -->
     <el-row :gutter="20">
       <el-col :span="8">
-        <el-input placeholder="请输入内容" >
-        <el-button slot="append" icon="el-icon-search"></el-button>
+        <el-input placeholder="请输入内容" v-model="queryInfo.query" clearable @clear="getUserList">
+        <el-button slot="append" icon="el-icon-search" @click="getUserList"></el-button>
       </el-input>
       </el-col>
       <el-col :span="4">
@@ -28,13 +28,31 @@
       <el-table-column label="角色" prop="type"></el-table-column>
       <el-table-column label="状态" >
         <template slot-scope="scope">
-          {{scope.row.mgState}}
-          <el-switch v-model="scope.row.mgState">
+          <el-switch v-model="scope.row.mgState" @change="userStateChanged(scope.row)">
           </el-switch>
         </template>
       </el-table-column>
-      <el-table-column label="操作" ></el-table-column>
+      <el-table-column label="操作" width="200px">
+        <template slot-scope="scope">
+          {{scope.row.id}}
+          <el-button type="primary" icon="el-icon-edit" size="mini"></el-button>
+          <el-button type="danger" icon="el-icon-delete" size="mini"></el-button>
+          <el-tooltip  effect="dark" content="分配角色" placement="top-start" :enterable="false">
+            <el-button type="warning" icon="el-icon-setting" size="mini"></el-button>
+          </el-tooltip>
+        </template>
+      </el-table-column>
     </el-table>
+<!--    分页区域-->
+    <el-pagination
+      @size-change="handleSizeChange"
+      @current-change="handleCurrentChange"
+      :current-page="queryInfo.pageNum"
+      :page-sizes="[2, 3, 5, 10]"
+      :page-size="queryInfo.pageSize"
+      layout="total, sizes, prev, pager, next, jumper"
+      :total="total">
+    </el-pagination>
   </el-card>
 </div>
 </template>
@@ -45,10 +63,11 @@ export default {
     return {
     // 获取用户列表的参数对象
       queryInfo: {
+        query: '',
         // 当前的页数
         pageNum: 1,
         // 当前每页显示多少条数据
-        pageSize: 3
+        pageSize: 5
       },
       userList: [],
       total: 0
@@ -66,6 +85,27 @@ export default {
       this.userList = res.data.list
       this.total = res.data.total
       console.log(res)
+    },
+    handleSizeChange (newSize) {
+      console.log(newSize)
+      this.queryInfo.pageSize = newSize
+      this.getUserList()
+    },
+    handleCurrentChange (newPage) {
+      console.log(newPage)
+      this.queryInfo.pageNum = newPage
+      this.getUserList()
+    },
+    // 监听 switch 开关状态的改变
+    async userStateChanged (userInfo) {
+      const { data: res } = await this.$http.put(
+        `user/users/${userInfo.id}/mgState/${userInfo.mgState}`
+      )
+      if (res.status !== 200) {
+        userInfo.mgState = !userInfo.mgState
+        return this.$message.error('更新用户状态失败！')
+      }
+      this.$message.success('更新用户状态成功！')
     }
   }
 }

@@ -70,11 +70,11 @@
         >
 <!--        树形控件-->
         <el-tree :data="rightsList" :props="treeProps" show-checkbox node-key="id" default-expand-all
-        :default-checked-keys="defKeys">
+        :default-checked-keys="defKeys" ref="treeRef">
         </el-tree>
         <span slot="footer" class="dialog-footer">
     <el-button @click="setRightDialogVisible = false">取 消</el-button>
-    <el-button type="primary" @click="setRightDialogVisible = false">确 定</el-button>
+    <el-button type="primary" @click="allotRights" >确 定</el-button>
   </span>
       </el-dialog>
     </div>
@@ -130,6 +130,7 @@ export default {
       })
     },
     async showSetRightDialog (role) {
+      this.roleId = role.roleId
       const { data: res } = await this.$http.get('right/tree')
       if (res.status !== 200) {
         return this.$message.error('获取权限数据失败！')
@@ -151,6 +152,15 @@ export default {
     // 关闭后清空被选中的三级权限id
     setRightDialogClosed () {
       this.defKeys = []
+    },
+    // 点击为角色分配权限
+    allotRights () {
+      const keys = [
+        ...this.$refs.treeRef.getCheckedKeys(),
+        ...this.$refs.treeRef.getHalfCheckedKeys()
+      ]
+      console.log('当前需要分配权限的角色id:' + this.roleId)
+      console.log(keys)
     }
   }
 }

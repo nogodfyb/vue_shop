@@ -37,7 +37,7 @@
           <el-button type="primary" icon="el-icon-edit" size="mini" @click="showEditDialog(scope.row.id)"></el-button>
           <el-button type="danger" icon="el-icon-delete" size="mini" @click="deleteUser(scope.row.id)"></el-button>
           <el-tooltip  effect="dark" content="分配角色" placement="top-start" :enterable="false">
-            <el-button type="warning" icon="el-icon-setting" size="mini"></el-button>
+            <el-button type="warning" icon="el-icon-setting" size="mini" @click="setRole(scope.row)"></el-button>
           </el-tooltip>
         </template>
       </el-table-column>
@@ -104,6 +104,30 @@
     <el-button type="primary" @click="editUser" >确 定</el-button>
       </span>
   </el-dialog>
+<!--  分配角色的对话框-->
+  <el-dialog
+    title="提示"
+    :visible.sync="setRoleDialogVisible"
+    width="50%"
+    @close="setRoleDialogClosed">
+    <div>
+      <p>当前的用户：{{userInfo.username}}</p>
+      <p>当前的角色：还没有设置角色字段！</p>
+      <p>分配新角色:
+        <el-select v-model="selectedId" placeholder="请选择" >
+          <el-option
+            v-for="item in rolesList"
+            :key="item.roleId"
+            :label="item.roleName"
+            :value="item.roleId">
+          </el-option>
+        </el-select></p>
+    </div>
+    <span slot="footer" class="dialog-footer">
+    <el-button @click="setRoleDialogVisible = false">取 消</el-button>
+    <el-button type="primary" @click="saveRoleInfo">确 定</el-button>
+  </span>
+  </el-dialog>
 </div>
 </template>
 
@@ -147,6 +171,8 @@ export default {
       // 用户对话框的可见性
       dialogVisible: false,
       editDialogVisible: false,
+      // 控制分配角色对话框的显示与关闭
+      setRoleDialogVisible: false,
       addForm: {
         username: '',
         password: '',
@@ -154,6 +180,12 @@ export default {
         email: ''
       },
       editForm: {},
+      // 需要被分配角色的用户信息
+      userInfo: {},
+      // 所有角色列表
+      rolesList: [],
+      // 已选中的roleId
+      selectedId: '',
       addFormRules: {
         username: [
           { required: true, message: '请输入用户名称', trigger: 'blur' },
@@ -291,6 +323,27 @@ export default {
         message: '删除成功!'
       })
       this.getUserList()
+    },
+    // 展示分配用户角色的对话框
+    setRole (user) {
+      this.userInfo = user
+      // 获取所有角色的列表,这里没有写后端接口，模拟数据学习前端而已
+      this.rolesList = [{ roleId: 101, roleName: '超级管理员' },
+        { roleId: 102, roleName: '超级管理员2' },
+        { roleId: 103, roleName: '超级管理员3' }]
+      this.setRoleDialogVisible = true
+    },
+    // 点击按钮，分配角色
+    saveRoleInfo () {
+      if (!this.selectedId) {
+        return this.$message.error('没有选择新角色')
+      }
+      console.log('当前用户id:' + this.userInfo.id)
+      console.log('当前选中角色id:' + this.selectedId)
+    },
+    setRoleDialogClosed () {
+      this.selectedId = ''
+      this.userInfo = {}
     }
   }
 }

@@ -1,14 +1,15 @@
 <template>
-  <el-container class="home-container">
-    <el-header>
+  <el-container class="home-container" >
+    <el-header >
       <div>
         <img src="../assets/logo.png" alt="" style="height: 50px ;width: 50px">
         <span>电商后台管理系统</span>
       </div>
       <el-button type="info" @click="loginOut">退出</el-button>
     </el-header>
-    <el-container>
-      <el-aside :width="isCollapse ? '64px' : '200px'">
+    <el-container style="height: 850px">
+<!--      侧边栏-->
+      <el-aside :width="isCollapse ? '64px' : '200px'" >
         <div class="toggle-button" @click="toggleCollapse">|||</div>
         <el-menu
           background-color="#333744" text-color="#fff" active-text-color="#409eef"
@@ -91,7 +92,7 @@ export default {
     height: 100%;
   }
   .el-header{
-    background: #373d41;
+    background-color: #373d41;
     display: flex;
     justify-content:space-between ;
     padding-left: 0;

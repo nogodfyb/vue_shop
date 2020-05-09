@@ -35,7 +35,10 @@
                     </el-col>
                     <el-col :span="18">
 <!--                      循环嵌套三级权限-->
-                        <el-tag type="warning" v-for="item3 in item2.children" :key="item3.id">{{item3.authName}}</el-tag>
+                        <el-tag type="warning" v-for="item3 in item2.children" :key="item3.id " closable
+                        @close="removeRightById">
+                          {{item3.authName}}
+                        </el-tag>
                     </el-col>
                   </el-row>
                 </el-col>
@@ -47,16 +50,33 @@
           <el-table-column label="角色名称" prop="roleName"></el-table-column>
           <el-table-column label="角色描述" prop="roleDesc"></el-table-column>
           <el-table-column label="操作" >
-            <template>
+            <template slot-scope="scope">
               <el-button type="primary" icon="el-icon-edit" size="mini" >编辑</el-button>
               <el-button type="danger" icon="el-icon-delete" size="mini" >删除</el-button>
               <el-tooltip  effect="dark" content="分配权限" placement="top-start" :enterable="false">
-                <el-button type="warning" icon="el-icon-setting" size="mini">分配权限</el-button>
+                <el-button type="warning" icon="el-icon-setting" size="mini" @click="showSetRightDialog(scope.row)">
+                  分配权限
+                </el-button>
               </el-tooltip>
             </template>
           </el-table-column>
         </el-table>
       </el-card>
+      <el-dialog
+        title="分配权限"
+        :visible.sync="setRightDialogVisible"
+        width="30%"
+        @close="setRightDialogClosed"
+        >
+<!--        树形控件-->
+        <el-tree :data="rightsList" :props="treeProps" show-checkbox node-key="id" default-expand-all
+        :default-checked-keys="defKeys">
+        </el-tree>
+        <span slot="footer" class="dialog-footer">
+    <el-button @click="setRightDialogVisible = false">取 消</el-button>
+    <el-button type="primary" @click="setRightDialogVisible = false">确 定</el-button>
+  </span>
+      </el-dialog>
     </div>
 </template>
 
@@ -94,6 +114,43 @@ export default {
       }
       this.roleList = res.data
       console.log(this.roleList)
+    },
+    removeRightById () {
+      this.$confirm('此操作将永久删除该权限, 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        console.log(123)
+      }).catch(() => {
+        this.$message({
+          type: 'info',
+          message: '已取消删除'
+        })
+      })
+    },
+    async showSetRightDialog (role) {
+      const { data: res } = await this.$http.get('right/tree')
+      if (res.status !== 200) {
+        return this.$message.error('获取权限数据失败！')
+      }
+      // 把获取到的权限数据保存到 data 中
+      this.rightsList = res.data
+      console.log(this.rightsList)
+      this.getLeafKeys(role, this.defKeys)
+      this.setRightDialogVisible = true
+    },
+    // 通过递归的形式，获取角色下所有三级权限的id，并保存到 defKeys 数组中
+    getLeafKeys (node, arr) {
+      // 如果当前 node 节点不包含 children 属性，则是三级节点
+      if (!node.children) {
+        return arr.push(node.id)
+      }
+      node.children.forEach(item => this.getLeafKeys(item, arr))
+    },
+    // 关闭后清空被选中的三级权限id
+    setRightDialogClosed () {
+      this.defKeys = []
     }
   }
 }

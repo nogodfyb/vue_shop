@@ -101,6 +101,9 @@ export default {
     >div{
       display: flex;
       align-items: center;
+      span {
+        margin-left: 15px;
+      }
     }
   }
   .el-aside{
